@@ -298,6 +298,30 @@
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
   });
 
+  /* ---------- Волна от касания на кнопках ---------- */
+  if (!reduce) {
+    document.addEventListener('pointerdown', function (e) {
+      var btn = e.target.closest('.btn');
+      if (!btn) return;
+      var r = btn.getBoundingClientRect();
+      var dot = document.createElement('span');
+      dot.className = 'btn__ripple';
+      dot.style.left = (e.clientX - r.left) + 'px';
+      dot.style.top = (e.clientY - r.top) + 'px';
+      dot.style.setProperty('--ripple-scale', Math.ceil(Math.max(r.width, r.height) / 8));
+      btn.appendChild(dot);
+      setTimeout(function () { dot.remove(); }, 700);
+    });
+  }
+
+  /* ---------- Тач-устройства: «ховер» у карточки, которая в центре экрана ---------- */
+  if (!reduce && !finePointer && 'IntersectionObserver' in window) {
+    var centerIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { en.target.classList.toggle('is-center', en.isIntersecting); });
+    }, { rootMargin: '-38% 0px -38% 0px' });
+    document.querySelectorAll('.sol-card, .feature, .res-card, .cta-card, .faq-item').forEach(function (el) { centerIO.observe(el); });
+  }
+
   if (reduce || !finePointer) return;
 
   /* ---------- Подсветка под курсором (карточки направлений, CTA) ---------- */

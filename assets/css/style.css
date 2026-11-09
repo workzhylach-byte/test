@@ -1576,3 +1576,115 @@ section[id], .article__section { scroll-margin-top: 110px; }
 /* FAQ: заголовок слева фиксируется при прокрутке списка вопросов */
 .faq__head { position: sticky; top: 120px; }
 @media (max-width: 1200px) { .faq__head { position: static; } }
+
+/* ==========================================================================
+   Правки мобильной версии
+   ========================================================================== */
+
+/* Крестик модалки рисуется CSS, а не SVG: в части iOS-браузеров SVG внутри grid-кнопки сжимался */
+.modal__close {
+  -webkit-appearance: none;
+  appearance: none;
+  padding: 0;
+  width: 44px; height: 44px;
+  top: 12px; right: 12px;
+}
+.modal__close::before,
+.modal__close::after {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 20px; height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.modal__close::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+/* Чекбоксы: квадрат стоит на уровне первой строки текста, а не по центру абзаца */
+.check { align-items: flex-start; }
+.check__box { margin-top: calc((1.6em - 12px) / 2); }
+.check--light .check__box { margin-top: calc((1.6em - 12px) / 2); }
+
+@media (max-width: 768px) {
+  /* FAQ: ответ мельче и легче вопроса */
+  .faq-item__q { font-size: 16px; line-height: 1.45; }
+  .faq-item__a p {
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: 0;
+    padding: 0 20px 20px;
+    margin-top: -2px;
+  }
+  .check { gap: 8px; font-size: 13px; line-height: 1.5; }
+  .check__box { margin-top: calc((1.5em - 12px) / 2); }
+  .form__agree { gap: 12px; margin-top: 14px; }
+  .modal .check--light { font-size: 14px; }
+}
+
+/* ==========================================================================
+   Анимации для тач-устройств
+   ========================================================================== */
+
+/* Нажатие: лёгкое «утапливание» */
+.btn:active, .res-card:active, .sol-card:active, .cta-card:active, .faq-item__q:active { transition-duration: .1s; }
+.btn:active { transform: scale(.97); }
+@media (hover: none) {
+  .res-card:active, .sol-card:active { transform: scale(.985); }
+  .faq-item__q:active { opacity: .75; }
+}
+
+/* Волна от точки касания на кнопках (на любых устройствах) */
+.btn__ripple {
+  position: absolute;
+  z-index: -1;
+  width: 20px; height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .45);
+  transform: scale(0);
+  animation: ripple .6s var(--ease-out) forwards;
+  pointer-events: none;
+}
+@keyframes ripple { to { transform: scale(var(--ripple-scale, 20)); opacity: 0; } }
+
+/* Иконки карточек «выпрыгивают» после появления карточки */
+.js-motion .sol-card .icon-badge { transition: transform .6s var(--ease-out) .25s, box-shadow .35s ease; }
+.js-motion .sol-card[data-reveal]:not(.is-visible) .icon-badge { transform: scale(.4) rotate(-20deg); }
+
+/* На тач-устройствах «ховер» включается, когда карточка проходит центр экрана */
+@media (hover: none) {
+  .sol-card.is-center { transform: translateY(-4px); border-color: rgba(255, 105, 0, .45); box-shadow: 0 20px 40px rgba(61, 24, 7, .12); }
+  .sol-card.is-center::before { opacity: 1; --mx: 80%; --my: 20%; }
+  .sol-card.is-center .icon-badge { box-shadow: 0 0 0 4px rgba(255, 105, 0, .12), 0 8px 20px rgba(255, 105, 0, .25); }
+  .sol-card.is-center .icon-badge img { transform: scale(1.15) rotate(-6deg); }
+
+  .feature.is-center .feature__art { box-shadow: 0 20px 44px rgba(61, 24, 7, .28); }
+  .feature.is-center .feature__art img { transform: scale(1.05); filter: saturate(1.15) brightness(1.06); }
+  .feature.is-center .feature__title { transform: translateX(6px); }
+
+  .res-card.is-center { box-shadow: 0 20px 40px rgba(61, 24, 7, .14); }
+  .res-card.is-center .res-card__cover > img { transform: scale(1.07); }
+  .res-card.is-center .res-card__title::after { opacity: 1; transform: none; }
+
+  .cta-card.is-center::after { opacity: 1; --mx: 70%; --my: 10%; }
+  .cta-card.is-center .cta-card__badge { transform: scale(1.08); }
+  .cta-card.is-center .cta-card__icon { animation: wiggle .7s ease; }
+  .cta-card.is-center .chip { background: #6b3314; color: var(--accent-light); }
+
+  .faq-item:not(.is-open).is-center { box-shadow: -4px 0 0 var(--accent-primary); }
+
+  /* мягкое «дыхание» главной кнопки на первом экране */
+  .hero__btn { animation: rise .9s var(--ease-out) .45s both, breathe 2.8s ease-in-out 2s infinite; }
+  @keyframes breathe { 0%, 100% { box-shadow: 0 0 0 0 rgba(255, 105, 0, .35); } 50% { box-shadow: 0 0 0 10px rgba(255, 105, 0, 0); } }
+}
+
+/* Схема в hero на телефоне собирается по частям */
+@media (max-width: 1200px) {
+  .hero__visual { animation: rise-scale 1.1s var(--ease-out) .5s both; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn__ripple { display: none; }
+  .js-motion .sol-card[data-reveal]:not(.is-visible) .icon-badge { transform: none; }
+}
