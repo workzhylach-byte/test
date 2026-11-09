@@ -1572,3 +1572,7 @@ section[id], .article__section { scroll-margin-top: 110px; }
 }
 
 [tabindex="-1"]:focus { outline: none; }
+
+/* FAQ: заголовок слева фиксируется при прокрутке списка вопросов */
+.faq__head { position: sticky; top: 120px; }
+@media (max-width: 1200px) { .faq__head { position: static; } }
