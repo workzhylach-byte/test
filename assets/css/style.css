@@ -1688,3 +1688,18 @@ section[id], .article__section { scroll-margin-top: 110px; }
   .btn__ripple { display: none; }
   .js-motion .sol-card[data-reveal]:not(.is-visible) .icon-badge { transform: none; }
 }
+
+/* Шапка на ноутбуках (1201–1440): логотип и меню не должны слипаться */
+.header__inner { gap: 32px; }
+@media (min-width: 1201px) and (max-width: 1440px) {
+  .nav { gap: 16px; }
+  .header .nav__link { font-size: 15px; }
+  .logo { gap: 14px; }
+  .logo__mark { width: 42px; height: 42px; }
+  .logo__text { font-size: 27px; }
+}
+@media (min-width: 1201px) and (max-width: 1300px) {
+  .nav { gap: 13px; }
+  .header .nav__link { font-size: 14px; }
+  .logo__text { font-size: 25px; }
+}

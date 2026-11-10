@@ -155,7 +155,7 @@
     route();
     var el = target.length > 1 ? document.querySelector(target) : null;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    if (el && target !== '#platform') setTimeout(function () { el.scrollIntoView(); }, 30);
+    if (el && target !== '#platform') setTimeout(function () { if (window.asysScrollTo) window.asysScrollTo(target.slice(1), false); else el.scrollIntoView(); }, 30);
   });
 
   /* ---------- Оглавление статьи: подсветка текущего раздела ---------- */
@@ -260,6 +260,13 @@
         if (e.isIntersecting || e.boundingClientRect.top < 0) { show(e.target); ro.unobserve(e.target); }
       });
     }, { rootMargin: '0px 0px -8% 0px', threshold: 0.08 });
+    window.asysRevealPending = function () {
+      var vb = window.innerHeight;
+      document.querySelectorAll('[data-reveal]:not(.is-visible)').forEach(function (el) {
+        if (el.closest('[hidden]')) return;
+        if (el.getBoundingClientRect().top < vb) { show(el); ro.unobserve(el); }
+      });
+    };
     reveals.forEach(function (el) {
       // то, что уже на первом экране, показываем сразу
       if (el.getBoundingClientRect().top < vh) show(el);
@@ -282,10 +289,12 @@
     if (progress) progress.style.setProperty('--progress', max > 0 ? (y / max).toFixed(4) : 0);
     if (header) {
       header.classList.toggle('is-scrolled', y > 20);
-      if (y > 400 && y > lastY + 4) header.classList.add('is-hidden');
+      if (y > 400 && y > lastY + 4 && !header.dataset.lockShow) header.classList.add('is-hidden');
       else if (y < lastY - 4 || y < 400) header.classList.remove('is-hidden');
     }
     if (toTop) toTop.classList.toggle('is-shown', y > window.innerHeight * 1.2);
+    // страховка: всё, что уже выше нижнего края экрана (быстрый рывок, переход по якорю), показываем
+    if (window.asysRevealPending) window.asysRevealPending();
     lastY = y;
     ticking = false;
   }
@@ -366,5 +375,56 @@
       btn.style.transform = 'translate(' + dx.toFixed(1) + 'px,' + (dy - 2).toFixed(1) + 'px)';
     });
     btn.addEventListener('pointerleave', function () { btn.style.transform = ''; });
+  });
+})();
+
+/* ==========================================================================
+   Переход по пунктам меню: к началу содержимого секции, а не к её верхнему отступу
+   ========================================================================== */
+(function () {
+  'use strict';
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var header = document.querySelector('.header');
+
+  function scrollToSection(id, smooth) {
+    var section = document.getElementById(id);
+    if (!section || section.closest('[hidden]')) return false;
+    if (id === 'platform' || id === 'top') {
+      window.scrollTo({ top: 0, behavior: smooth && !reduce ? 'smooth' : 'instant' });
+      return true;
+    }
+    // начало содержимого = верх секции + её внутренний отступ (элементы внутри могут быть смещены анимацией появления)
+    var contentTop = section.getBoundingClientRect().top + window.scrollY + parseFloat(getComputedStyle(section).paddingTop || 0);
+    // шапка на время перехода не прячется; в «прилипшем» виде её высота 88px
+    var gap = window.innerWidth <= 768 ? 24 : 40;
+    var y = contentTop - 88 - gap;
+    if (header) {
+      header.classList.remove('is-hidden');
+      header.dataset.lockShow = '1';
+      clearTimeout(scrollToSection.t);
+      scrollToSection.t = setTimeout(function () { delete header.dataset.lockShow; }, 1200);
+    }
+    window.scrollTo({ top: Math.max(0, y), behavior: smooth && !reduce ? 'smooth' : 'instant' });
+    return true;
+  }
+  window.asysScrollTo = scrollToSection;
+
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a || e.defaultPrevented || a.hasAttribute('data-modal')) return;
+    var id = a.getAttribute('href').slice(1);
+    if (!id || id.indexOf('art-') === 0) return;
+    var section = document.getElementById(id);
+    if (!section || section.tagName !== 'SECTION' || section.closest('[hidden]')) return;
+    e.preventDefault();
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+    scrollToSection(id, true);
+  });
+
+  // прямой заход по ссылке вида …/#solutions
+  window.addEventListener('load', function () {
+    var id = location.hash.slice(1);
+    var section = id && document.getElementById(id);
+    if (section && section.tagName === 'SECTION') setTimeout(function () { scrollToSection(id, false); }, 50);
   });
 })();
