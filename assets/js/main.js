@@ -397,12 +397,15 @@
     var contentTop = section.getBoundingClientRect().top + window.scrollY + parseFloat(getComputedStyle(section).paddingTop || 0);
     // шапка на время перехода не прячется; в «прилипшем» виде её высота 88px
     var gap = window.innerWidth <= 768 ? 24 : 40;
-    var y = contentTop - 88 - gap;
+    var y = contentTop - 88 - gap;   // 88 — высота шапки в «прилипшем» виде на любой ширине
     if (header) {
       header.classList.remove('is-hidden');
       header.dataset.lockShow = '1';
       clearTimeout(scrollToSection.t);
-      scrollToSection.t = setTimeout(function () { delete header.dataset.lockShow; }, 1200);
+      // шапка остаётся видимой до конца плавной прокрутки (+ запас), потом снова прячется как обычно
+      var unlock = function () { clearTimeout(scrollToSection.t); scrollToSection.t = setTimeout(function () { delete header.dataset.lockShow; }, 400); window.removeEventListener('scrollend', unlock); };
+      window.addEventListener('scrollend', unlock);
+      scrollToSection.t = setTimeout(unlock, 2500);
     }
     window.scrollTo({ top: Math.max(0, y), behavior: smooth && !reduce ? 'smooth' : 'instant' });
     return true;

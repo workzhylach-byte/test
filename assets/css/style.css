@@ -1703,3 +1703,22 @@ section[id], .article__section { scroll-margin-top: 110px; }
   .header .nav__link { font-size: 14px; }
   .logo__text { font-size: 25px; }
 }
+
+/* ==========================================================================
+   Шапка фиксированная: её уменьшение при прокрутке больше не сдвигает контент
+   (раньше из-за этого переход по меню «перелетал» и надзаголовок блока уходил под шапку)
+   ========================================================================== */
+:root { --header-h: 130px; }
+@media (max-width: 1200px) { :root { --header-h: 88px; } }
+
+body { padding-top: var(--header-h); }
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+}
+.header__inner { height: var(--header-h); }
+.header.is-scrolled .header__inner { height: 88px; }
+@media (max-width: 1200px) { .header__inner, .header.is-scrolled .header__inner { height: 88px; } }
+
+section[id], .article__section { scroll-margin-top: 120px; }
